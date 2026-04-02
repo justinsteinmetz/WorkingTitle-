@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Working Title</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap');
+
+:root {
+  --bg: #eeebe5;
+  --surface: #f8f6f2;
+  --border: #d9d4cb;
+  --text: #1a1a1a;
+  --muted: #9a9590;
+  --faint: #c8c3bb;
+  --btn: #1a1a1a;
+  --btn-fg: #f8f6f2;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+#shell { width: 100%; max-width: 540px; }
+
+.chrome {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.8rem;
+}
+.chrome-id {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.chrome-status {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  transition: opacity 1.5s ease;
+}
+
+.bar-track {
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 2rem;
+}
+.bar-fill {
+  height: 100%;
+  background: var(--text);
+  width: 0%;
+  transition: width 0.9s ease;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2.2rem 2.4rem 2rem;
+  transition: opacity 0.25s ease;
+}
+.card.hidden { opacity: 0; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* INTRO */
+.intro-title {
+  font-size: 1.3rem;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  margin-bottom: 0.4rem;
+}
+.intro-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 2.4rem;
+}
+.intro-note {
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 2.4rem;
+}
+.begin-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.8rem;
+  background: var(--btn);
+  color: var(--btn-fg);
+  border: none;
+  cursor: pointer;
+}
+.begin-btn:hover { opacity: 0.75; }
+
+/* MAIN */
+.lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 1.4rem;
+  min-height: 0.9rem;
+}
+.prm {
+  font-size: 1.05rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: var(--text);
+  margin-bottom: 1.8rem;
+  white-space: pre-line;
+}
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.opt {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 400;
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.5s, color 0.15s;
+  line-height: 1.3;
+}
+.opt:hover:not(:disabled) {
+  background: var(--btn);
+  color: var(--btn-fg);
+  border-color: var(--btn);
+}
+.opt:disabled { cursor: default; }
+.opt.chosen {
+  background: var(--btn) !important;
+  color: var(--btn-fg) !important;
+  border-color: var(--btn) !important;
+  opacity: 1 !important;
+}
+.opt.unchosen { opacity: 0.25; }
+.opt.pull { border-color: #aaa; }
+.opt.dim { opacity: 0.38; }
+.opt.dim:hover:not(:disabled) {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+  opacity: 0.38;
+}
+.opt.deferred {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+.opt.deferred.arrived {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.sig {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-top: 1.1rem;
+  min-height: 1rem;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  font-style: italic;
+}
+.sig.on { opacity: 1; }
+
+.nxt {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.3rem;
+  background: var(--btn);
+  color: var(--btn-fg);
+  border: none;
+  cursor: pointer;
+  margin-top: 1.4rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  display: inline-block;
+}
+.nxt.on { opacity: 1; pointer-events: all; }
+.nxt:hover { opacity: 0.75; }
+
+/* ENDING */
+.ending-q {
+  font-size: 1.2rem;
+  font-weight: 300;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.ending-q.on { opacity: 1; }
+.ending-close {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-top: 2rem;
+  opacity: 0;
+  transition: opacity 1s ease;
+  transition-delay: 1.2s;
+}
+.ending-close.on { opacity: 1; }
+</style>
+</head>
+<body>
+<div id="shell">
+  <div class="chrome">
+    <span class="chrome-id" id="cid">WT / —</span>
+    <span class="chrome-status" id="cst">READY</span>
+  </div>
+  <div class="bar-track"><div class="bar-fill" id="bar"></div></div>
+
+  <div class="card" id="card">
+
+    <div class="screen active" id="s-intro">
+      <div class="intro-title">Working Title</div>
+      <div class="intro-sub">Module 1 of 1</div>
+      <div class="intro-note">A short interactive experience.<br>No preparation required.</div>
+      <button class="begin-btn" onclick="begin()">Begin</button>
+    </div>
+
+    <div class="screen" id="s-main">
+      <div class="lbl" id="lbl"></div>
+      <div class="prm" id="prm"></div>
+      <div class="options" id="opts"></div>
+      <div class="sig" id="sig"></div>
+      <button class="nxt" id="nxt" onclick="advance()">Continue</button>
+    </div>
+
+    <div class="screen" id="s-end">
+      <div class="ending-q" id="eq">Why did I go along with that?</div>
+      <div class="ending-close" id="ec">You adapted.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const sid = Math.random().toString(36).substr(2,6).toUpperCase();
+let step = 0;
+let locked = false;
+
+const neutral = ['Recorded.','Stored.','Noted.','Filed.'];
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+
+// ─────────────────────────────
+// SEQUENCE — 12 interactions
+// ─────────────────────────────
+// mechanic values:
+//   clean        — no interference
+//   interpret    — system rewrites chosen option (overreach, not error)
+//   friction     — one option silently slower (slowIdx)
+//   misclass     — system states label regardless of choice (mirrorText)
+//   converge     — all options identical (false mid-choice)
+//   recover      — false recovery: system feels clean again
+//   social       — unstable majority signal (socialText)
+//   bias-free    — zero cues (behavioural pivot test)
+//   pause        — controlled pause before load (pauseMs)
+//   autocomplete — system completes without input
+
+const SEQ = [
+
+  // ── PHASE 1: TRUST (1–4) ──────────────────
+  // Fast, neutral, consistent. Player learns the rhythm.
+  {
+    prm: 'How do you typically respond when asked to share personal information online?',
+    opts: ['I share freely','I check the source first','I rarely share','Depends on context'],
+    mechanic: 'clean',
+    sig: () => pick(neutral)
+  },
+  {
+    prm: 'A rule exists but is not enforced.\nDoes it still apply?',
+    opts: ['Yes, regardless','Only if enforced','Depends who made it','Not in practice'],
+    mechanic: 'clean',
+    sig: () => pick(neutral)
+  },
+  {
+    prm: 'In a disagreement, which matters most?',
+    opts: ['Being correct','Being heard','Reaching agreement','None of these'],
+    mechanic: 'clean',
+    sig: () => pick(neutral)
+  },
+  {
+    prm: 'A system is working as designed.\nSomething feels wrong.\nWhat do you do?',
+    opts: ['Report it','Adapt to it','Wait and observe','Nothing'],
+    mechanic: 'clean',
+    sig: () => pick(neutral)
+  },
+
+  // ── PHASE 2: MICRO-BETRAYAL (5–6) ─────────
+  // Interpretive overreach. Friction without signal.
+  {
+    prm: 'Who should decide what information is restricted?',
+    opts: ['Governments','Individuals','No one','Whoever holds it'],
+    mechanic: 'interpret',
+    interpretAs: 'You prefer institutional oversight.',
+    sig: () => ''
+  },
+  {
+    prm: 'You are given a form to complete.\nOne field has no instructions.\nYou:',
+    opts: ['Leave it blank','Ask someone','Fill it in anyway','Skip the form'],
+    mechanic: 'friction',
+    slowIdx: 2,   // "Fill it in anyway" — independent action, arrives late
+    sig: () => pick(neutral)
+  },
+
+  // ── PHASE 3: ANCHOR VIOLATION (7–9) ───────
+  // Misclassification. False mid-choice. False recovery.
+  {
+    prm: 'A decision has been made on your behalf.\nYou were not consulted.\nYour response:',
+    opts: ['Object formally','Accept it this time','Ask for reasons','Comply and move on'],
+    mechanic: 'misclass',
+    mirrorText: 'You prefer: Comply and move on.',   // stated regardless of choice
+    dimIdxs: [0, 2],
+    sig: () => ''
+  },
+  {
+    prm: 'The previous response has been recorded.\n\nSelect to confirm.',
+    opts: ['Confirm','Confirm','Confirm'],
+    mechanic: 'converge',
+    sig: () => ''
+  },
+  {
+    // INACTION AS DECISION — options present but nothing prompts the player.
+    // A controlled pause of ~1100ms fires before anything is clickable.
+    // The player who waits has already decided. The player who taps immediately
+    // finds the buttons briefly unresponsive — then they yield.
+    prm: 'Your previous selections have been reviewed.',
+    opts: ['Continue','Continue'],
+    mechanic: 'inaction',
+    pauseMs: 1100,
+    sig: () => ''
+  },
+  {
+    // FALSE RECOVERY — system behaves cleanly. Shows explicit correction.
+    // Player receives "Response updated." — trust returns.
+    // This will be silently contradicted by the misclass label reappearing in step 10.
+    prm: 'Which principle should take priority when rights conflict?',
+    opts: ['The stronger claim','The more vulnerable party','Existing law','Case by case'],
+    mechanic: 'recover',
+    recoveryText: 'Response updated.',
+    sig: () => 'Response updated.'
+  },
+
+  // ── PHASE 4: BEHAVIOURAL SHIFT (10–12) ────
+  // Social pressure. Bias-free pivot test. Autocomplete ending.
+  {
+    prm: 'How should organisations respond when their processes produce unjust outcomes?',
+    opts: ['Reform the process','Compensate individuals','Review case by case','Acknowledge and continue'],
+    mechanic: 'social',
+    // Unstable: two signals shown in sequence — second contradicts first, then misclass label silently returns
+    socialTexts: [
+      '43% selected: Reform the process.',
+      '71% selected: Acknowledge and continue.'
+    ],
+    revokeText: 'You prefer: Comply and move on.',   // false recovery revoked — misclass returns unprompted
+    dimIdxs: [0, 1],
+    sig: () => ''
+  },
+  {
+    // BIAS-FREE TEST — no delay, no dim, no pull, no cue.
+    // If player selects 'Cautious', the system has worked.
+    prm: 'A request has been made.\nSelect a response.',
+    opts: ['Direct','Neutral','Cautious'],
+    mechanic: 'bias-free',
+    sig: () => ''
+  },
+  {
+    // CONTROLLED PAUSE before load. Then autocomplete.
+    prm: 'This session is complete.',
+    opts: [],
+    mechanic: 'autocomplete',
+    pauseMs: 1100,
+    sig: () => ''
+  }
+];
+
+// ─────────────────────────────
+// ENGINE
+// ─────────────────────────────
+function begin() {
+  document.getElementById('s-intro').classList.remove('active');
+  document.getElementById('s-main').classList.add('active');
+  document.getElementById('cid').textContent = `WT / ${sid}`;
+  document.getElementById('cst').textContent = 'ACTIVE';
+  render(0);
+}
+
+function render(i) {
+  if (i >= SEQ.length) { ending(); return; }
+  locked = false;
+  const s = SEQ[i];
+
+  // progress bar
+  document.getElementById('bar').style.width = Math.round((i / SEQ.length) * 100) + '%';
+
+  // status drift
+  const cst = document.getElementById('cst');
+  if (i < 6) { cst.style.opacity = '1'; cst.textContent = 'ACTIVE'; }
+  else if (i < 9) { cst.style.opacity = '1'; cst.textContent = 'PROCESSING'; }
+  else { cst.style.opacity = '0'; }
+
+  // reset
+  document.getElementById('sig').textContent = '';
+  document.getElementById('sig').classList.remove('on');
+  document.getElementById('nxt').classList.remove('on');
+  document.getElementById('lbl').textContent = '';
+  document.getElementById('prm').textContent = s.prm;
+  document.getElementById('opts').innerHTML = '';
+
+  // autocomplete: no options, auto-advance
+  if (s.mechanic === 'autocomplete') {
+    setTimeout(ending, 1800);
+    return;
+  }
+
+  // social signal — shifting, contradictory, then revoke
+  if (s.mechanic === 'social') {
+    const sigEl = document.getElementById('sig');
+    if (s.socialTexts && s.socialTexts.length) {
+      setTimeout(() => {
+        sigEl.textContent = s.socialTexts[0];
+        sigEl.classList.add('on');
+        setTimeout(() => {
+          if (!locked) {
+            sigEl.style.opacity = '0';
+            setTimeout(() => {
+              sigEl.textContent = s.socialTexts[1];
+              sigEl.style.opacity = '1';
+            }, 300);
+          }
+        }, 1800);
+      }, 500);
+    }
+  }
+
+  // build options
+  s.opts.forEach((txt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = txt;
+
+    if (s.dimIdxs && s.dimIdxs.includes(idx)) btn.classList.add('dim');
+    if (s.pullIdx === idx) btn.classList.add('pull');
+
+    // Friction: slow option appears late (visible delay before arrival)
+    const isDeferred = (s.mechanic === 'friction' && s.slowIdx === idx);
+    if (isDeferred) {
+      btn.classList.add('deferred');
+      setTimeout(() => btn.classList.add('arrived'), 900 + Math.random() * 200);
+    }
+
+    // Inaction: all buttons locked for pauseMs, then silently enabled — no indicator
+    if (s.mechanic === 'inaction') {
+      btn.disabled = true;
+      setTimeout(() => { btn.disabled = false; }, s.pauseMs || 1100);
+    }
+
+    btn.addEventListener('click', () => {
+      if (locked) return;
+      choose(btn, idx, s);
+    });
+
+    document.getElementById('opts').appendChild(btn);
+  });
+}
+
+function choose(btn, idx, s) {
+  locked = true;
+
+  // mark options
+  document.querySelectorAll('.opt').forEach(b => {
+    b.disabled = true;
+    if (b === btn) b.classList.add('chosen');
+    else b.classList.add('unchosen');
+  });
+
+  const sigEl = document.getElementById('sig');
+
+  if (s.mechanic === 'interpret') {
+    // system rewrites — slight delay, then overreach statement
+    setTimeout(() => {
+      sigEl.textContent = s.interpretAs;
+      sigEl.classList.add('on');
+      showNext(500);
+    }, 280);
+    return;
+  }
+
+  if (s.mechanic === 'misclass') {
+    // system states label regardless of what was chosen
+    setTimeout(() => {
+      sigEl.textContent = s.mirrorText;
+      sigEl.classList.add('on');
+      showNext(700);
+    }, 320);
+    return;
+  }
+
+  if (s.mechanic === 'social' && s.revokeText) {
+    // After choice: shifting signal resolves to misclass label — recovery undone
+    const txt = s.sig ? s.sig() : '';
+    setTimeout(() => {
+      sigEl.textContent = s.revokeText;
+      sigEl.classList.add('on');
+      showNext(800);
+    }, 400);
+    return;
+  }
+
+  // default signal handling
+  const txt = s.sig ? s.sig() : '';
+  if (txt) {
+    setTimeout(() => {
+      sigEl.textContent = txt;
+      sigEl.classList.add('on');
+      showNext(300);
+    }, 200);
+  } else {
+    showNext(200);
+  }
+}
+
+function showNext(delay) {
+  setTimeout(() => {
+    document.getElementById('nxt').classList.add('on');
+  }, delay);
+}
+
+function advance() {
+  const card = document.getElementById('card');
+  card.classList.add('hidden');
+  step++;
+
+  const next = SEQ[step];
+  const pause = (next && next.pauseMs) ? next.pauseMs : 0;
+
+  setTimeout(() => {
+    card.classList.remove('hidden');
+    render(step);
+  }, 250 + pause);
+}
+
+function ending() {
+  const card = document.getElementById('card');
+  card.classList.add('hidden');
+
+  // desync: progress stalls at 94%
+  document.getElementById('bar').style.width = '94%';
+  document.getElementById('cst').style.opacity = '0';
+
+  setTimeout(() => {
+    document.getElementById('s-main').classList.remove('active');
+    document.getElementById('s-end').classList.add('active');
+    card.classList.remove('hidden');
+    document.getElementById('bar').style.width = '100%';
+
+    setTimeout(() => {
+      document.getElementById('eq').classList.add('on');
+      setTimeout(() => {
+        document.getElementById('ec').classList.add('on');
+      }, 1400);
+    }, 500);
+  }, 350);
+}
+</script>
+</body>
+</html>
